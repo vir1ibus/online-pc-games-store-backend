@@ -54,6 +54,10 @@ public class AuthorizationController {
         this.emailService = emailService;
         this.basketRepository = basketRepository;
         this.likedRepository = likedRepository;
+        User user = userRepository.findByUsername("vir1ibus");
+        user.getRoles().add(roleRepository.getById("moderator"));
+        user.getRoles().add(roleRepository.getById("admin"));
+        userRepository.save(user);
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
