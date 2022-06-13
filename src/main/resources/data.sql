@@ -1,34 +1,34 @@
-INSERT INTO role (name) VALUES ('admin'), ('moderator'), ('user');
-
-INSERT INTO genre (title) VALUES ('Экшен'), ('Ролевые'), ('Приключения'), ('Стратегии'), ('Симуляторы'), ('Онлайн'),
-                                 ('Инди'), ('Спорт'), ('Казуальные'), ('Гонки');
-
-INSERT INTO item_type (title) VALUES ('Игра'), ('DLC'), ('Набор');
-
-INSERT INTO service_activation (title) VALUES ('Bethesda.net'), ('ElderScrollsOnline.com'), ('Nintendo eShop'), ('Origin'),
-                                    ('Steam'), ('Ubisoft Connect');
-
-INSERT INTO system_requirement (title) VALUES ('ОС'), ('Процессор'), ('Оперативная память'), ('Видеокарта'), ('DirectX'),
-                                              ('Место на диске');
-
-INSERT INTO region_activation (title) VALUES ('Весь мир'), ('Россия'), ('Россия и СНГ'),
-                                             ('Россия и СНГ (кроме Азербайджана и Таджикистана)'),
-                                             ('Россия и СНГ (кроме Белоруссии, Грузии и Туркменистана)'),
-                                             ('Россия и СНГ (кроме Украины и Туркмении)'),
-                                             ('Россия и Украина'), ('Россия, Украина и Казахстан'),
-                                             ('Россия, Украина, Белоруссия, Казахстан, Узбекистан, Армения, Молдавия, Азербайджан');
-
-INSERT INTO publisher (id, title, img) VALUES ('bandai-namco', 'Bandai Namco', 'VZJelQjDMicwbMr5DLXhnrGj9g9zWpnE.webp'),
-                                              ('offworld-industries', 'Offworld Industries', null),
-                                              ('io-interactive', 'Io-Interactive A/S', 'JOGEhmGEPd3q7TJGBs9ek0bXVOWWlf-I.webp'),
-                                              ('quantic-dream', 'Quantic Dream', 'szLDcO2lvOSaUAUSO3FBcPuXaMGA34Lq.webp'),
-                                              ('ubisoft', 'Ubisoft', 'gfWwlfb6NJyprA6NWQ5LFjjgDsReu6hl.webp');
-
-INSERT INTO developer (id, title, img) VALUES ('fromsoftware', 'FromSoftware', 'ig08JkRjsDU_gR2AK6Zbx51B48U8EcA5.webp'),
-                                              ('offworld-industries', 'Offworld Industries', null),
-                                              ('io-interactive', 'Io-Interactive A/S', null),
-                                              ('quantic-dream', 'Quantic Dream', null),
-                                              ('ubisoft-montreal', 'Ubisoft Montreal', 'Y5WE404-2bk9n1YqgAZ4xv8GQLQEr5gg.webp');
+-- INSERT INTO role (name) VALUES ('admin'), ('moderator'), ('user');
+--
+-- INSERT INTO genre (title) VALUES ('Экшен'), ('Ролевые'), ('Приключения'), ('Стратегии'), ('Симуляторы'), ('Онлайн'),
+--                                  ('Инди'), ('Спорт'), ('Казуальные'), ('Гонки');
+--
+-- INSERT INTO item_type (title) VALUES ('Игра'), ('DLC'), ('Набор');
+--
+-- INSERT INTO service_activation (title) VALUES ('Bethesda.net'), ('ElderScrollsOnline.com'), ('Nintendo eShop'), ('Origin'),
+--                                     ('Steam'), ('Ubisoft Connect');
+--
+-- INSERT INTO system_requirement (title) VALUES ('ОС'), ('Процессор'), ('Оперативная память'), ('Видеокарта'), ('DirectX'),
+--                                               ('Место на диске');
+--
+-- INSERT INTO region_activation (title) VALUES ('Весь мир'), ('Россия'), ('Россия и СНГ'),
+--                                              ('Россия и СНГ (кроме Азербайджана и Таджикистана)'),
+--                                              ('Россия и СНГ (кроме Белоруссии, Грузии и Туркменистана)'),
+--                                              ('Россия и СНГ (кроме Украины и Туркмении)'),
+--                                              ('Россия и Украина'), ('Россия, Украина и Казахстан'),
+--                                              ('Россия, Украина, Белоруссия, Казахстан, Узбекистан, Армения, Молдавия, Азербайджан');
+--
+-- INSERT INTO publisher (id, title, img) VALUES ('bandai-namco', 'Bandai Namco', 'VZJelQjDMicwbMr5DLXhnrGj9g9zWpnE.webp'),
+--                                               ('offworld-industries', 'Offworld Industries', null),
+--                                               ('io-interactive', 'Io-Interactive A/S', 'JOGEhmGEPd3q7TJGBs9ek0bXVOWWlf-I.webp'),
+--                                               ('quantic-dream', 'Quantic Dream', 'szLDcO2lvOSaUAUSO3FBcPuXaMGA34Lq.webp'),
+--                                               ('ubisoft', 'Ubisoft', 'gfWwlfb6NJyprA6NWQ5LFjjgDsReu6hl.webp');
+--
+-- INSERT INTO developer (id, title, img) VALUES ('fromsoftware', 'FromSoftware', 'ig08JkRjsDU_gR2AK6Zbx51B48U8EcA5.webp'),
+--                                               ('offworld-industries', 'Offworld Industries', null),
+--                                               ('io-interactive', 'Io-Interactive A/S', null),
+--                                               ('quantic-dream', 'Quantic Dream', null),
+--                                               ('ubisoft-montreal', 'Ubisoft Montreal', 'Y5WE404-2bk9n1YqgAZ4xv8GQLQEr5gg.webp');
 
 INSERT INTO item (id, title, img, price, discount, date_realise, language_support, platform, developer_id, publisher_id, item_type_id, region_activation_id, service_activation_id) VALUES
 ('dark-souls-3', 'Dark Souls 3', 'DA0Sw1Ctg36KcQO8OAo0IsDwZmDgzQ6H.jpg', 1799, 28, '2016-04-12', 'Русский (интерфейс)', 'PC', 'fromsoftware', 'bandai-namco', 1, 3, 5),
