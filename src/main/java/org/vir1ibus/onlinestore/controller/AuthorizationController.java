@@ -29,6 +29,7 @@ import java.time.LocalDateTime;
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/authorization")
@@ -54,10 +55,6 @@ public class AuthorizationController {
         this.emailService = emailService;
         this.basketRepository = basketRepository;
         this.likedRepository = likedRepository;
-        User user = userRepository.findByUsername("vir1ibus");
-        user.getRoles().add(roleRepository.getById("moderator"));
-        user.getRoles().add(roleRepository.getById("admin"));
-        userRepository.save(user);
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)

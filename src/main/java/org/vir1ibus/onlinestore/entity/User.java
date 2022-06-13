@@ -55,7 +55,7 @@ public class User extends CustomJSONObject {
     private Set<Purchase> purchases = new LinkedHashSet<>();
 
     @OnDelete(action = OnDeleteAction.CASCADE)
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "user_role",
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "role_name"))
