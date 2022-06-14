@@ -15,6 +15,9 @@ import java.util.Set;
 @Component
 public record EmailService(JavaMailSender emailSender) {
 
+    /*
+    Метод для отправки ссылки подтверждения почты пользователя на электронную почту
+     */
     public void sendConfirmationMessage(String to, String text_message) {
         SimpleMailMessage message = new SimpleMailMessage();
         message.setFrom("noreply@vir1ibus-shop.com");
@@ -24,6 +27,9 @@ public record EmailService(JavaMailSender emailSender) {
         emailSender.send(message);
     }
 
+    /*
+    Метод для отправки купленного товара пользователем на электронную почту
+     */
     public void sendActivateKeys(String to, Purchase purchase, Set<ActivateKey> activateKeys) {
         try {
             MimeMessage message = emailSender.createMimeMessage();
@@ -57,4 +63,5 @@ public record EmailService(JavaMailSender emailSender) {
         } catch (MessagingException e) {
             throw new RuntimeException(e);
         }
-    }}
+    }
+}

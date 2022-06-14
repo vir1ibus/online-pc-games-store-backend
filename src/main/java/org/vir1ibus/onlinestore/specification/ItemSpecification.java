@@ -51,22 +51,24 @@ public class ItemSpecification {
                         break;
 
                     case "min-price":
-                        and(cb.greaterThanOrEqualTo(root.get(Item_.PRICE), StringFormatter.toIntegerList(values).get(0)));
+                        and(cb.greaterThanOrEqualTo(root.get(Item_.RESULT_PRICE), StringFormatter.toIntegerList(values).get(0)));
                         break;
 
                     case "max-price":
-                        and(cb.lessThanOrEqualTo(root.get(Item_.PRICE), StringFormatter.toIntegerList(values).get(0)));
+                        and(cb.lessThanOrEqualTo(root.get(Item_.RESULT_PRICE), StringFormatter.toIntegerList(values).get(0)));
                         break;
 
                     case "sort":
                         switch (values[0]) {
-                            case "price-asc" -> query.orderBy(cb.asc(root.get(Item_.PRICE)));
-                            case "price-desc" -> query.orderBy(cb.desc(root.get(Item_.PRICE)));
+                            case "price-asc" -> query.orderBy(cb.asc(root.get(Item_.RESULT_PRICE)));
+                            case "price-desc" -> query.orderBy(cb.desc(root.get(Item_.RESULT_PRICE)));
                             case "title-asc" -> query.orderBy(cb.asc(root.get(Item_.TITLE)));
                             case "discount-desc" -> query.orderBy(cb.desc(root.get(Item_.DISCOUNT)));
                         }
                         break;
-
+                    case "region-activation":
+                        and(root.get(Item_.REGION_ACTIVATION).get(RegionActivation_.ID).in(StringFormatter.toIntegerList(values)));
+                        break;
 //                    case "available": // FIX
 //                        if(Integer.parseInt(values[0]) > 0) {
 //                            and(root.join(Item_.ACTIVATE_KEYS).get(ActivateKey_.PURCHASE).isNull());

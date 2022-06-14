@@ -52,6 +52,10 @@ public class Item extends CustomJSONObject {
     @Column(name = "discount", nullable = false)
     private Integer discount;
 
+    @PositiveOrZero
+    @Column(name = "result_price", nullable = false)
+    private Integer resultPrice;
+
     @NotBlank
     @Column(name = "language_support", nullable = false)
     private String languageSupport;
@@ -132,6 +136,7 @@ public class Item extends CustomJSONObject {
                 .put("img", this.img)
                 .put("price", this.price)
                 .put("discount", this.discount)
+                .put("result_price", this.resultPrice)
                 .put("language_support", this.languageSupport)
                 .put("date_realise", this.dateRealise)
                 .put("platform", this.platform)

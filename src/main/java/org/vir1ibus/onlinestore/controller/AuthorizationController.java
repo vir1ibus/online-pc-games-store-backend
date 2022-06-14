@@ -57,6 +57,9 @@ public class AuthorizationController {
         this.likedRepository = likedRepository;
     }
 
+    /**
+     * Позволяет отправлять в теле ответа удобную для идентификации ошибки на стороне клиента
+     **/
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public String handleValidationExceptions(MethodArgumentNotValidException ex) {
@@ -71,6 +74,10 @@ public class AuthorizationController {
         return errors.toString();
     }
 
+    /**
+     * Позволяет определить существует ли сессия с данным токеном
+     * получить информацию о пользователе который является авторизоавнным
+     **/
     private User isAuthenticated(String token) throws NullPointerException, NoSuchElementException {
         AuthorizationToken authorizationToken = authorizationTokenRepository.findTokenByValue(token);
         if(authorizationToken.getActive() && authorizationToken.getUser().getActive()) {
@@ -80,6 +87,9 @@ public class AuthorizationController {
         }
     }
 
+    /**
+     * Вызывается при REST запросе с URI = '/' и вызывает метод проверки сессии
+     */
     @RequestMapping(value = "/", method = RequestMethod.GET)
     public ResponseEntity<?> isAuthenticatedResponse(@RequestHeader(value = "Authorization") String token) {
         try {
@@ -104,6 +114,14 @@ public class AuthorizationController {
         @NotBlank
         private String password;
     }
+
+    /**
+     * Метод выполняющий регистрацию пользователя принимающий форму регистрации
+     * содержащую в себе имя пользователя, электронную почту и пароль.
+     * С помощью класс Cryptography выполняет шифрование пароля по алгоритму SHA-512.
+     * Добавляет все данные в базу данных и создаёт ссылку для подтверждения электронной почты
+     * и вызывает метод из класса EmailService для отправки этой ссылки на электронную почту
+     */
 
     @RequestMapping(value = "/registration", method = RequestMethod.POST)
     public ResponseEntity<?> registration( @Valid @RequestBody(required = false) RegistrationForm registrationForm,
@@ -179,6 +197,7 @@ public class AuthorizationController {
                     HttpStatus.BAD_REQUEST);
         }
     }
+
     @Getter
     @Setter
     @AllArgsConstructor
@@ -186,6 +205,11 @@ public class AuthorizationController {
     private static class ChangeEmailInput {
         private String email;
     }
+
+    /**
+     * Метод позволяет пользователю изменить электронную почту аккаунта.
+     * Отправляет новую ссылку подтверждения на электронную почту переданную в форму.
+     */
 
     @RequestMapping(value = "/change/email", method = RequestMethod.PUT)
     public ResponseEntity<?> changeEmail(@RequestHeader(name = "Authorization") String token,
@@ -217,6 +241,10 @@ public class AuthorizationController {
         private String username;
     }
 
+    /**
+     * Метод позволяет пользователю изменить имя пользователя аккаунта.
+     */
+
     @RequestMapping(value = "/change/username", method = RequestMethod.POST)
     public ResponseEntity<?> changeUsername(@RequestHeader(name = "Authorization") String token,
                                             @RequestBody ChangeUsernameInput changeUsernameInput,
@@ -228,6 +256,7 @@ public class AuthorizationController {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
     }
+
     @Getter
     @Setter
     @AllArgsConstructor
@@ -236,7 +265,11 @@ public class AuthorizationController {
         private String currentPassword;
         private String newPassword;
     }
-
+    /**
+     * Метод позволяет пользователю изменить пароль аккаунта.
+     * Получает из формы текущий пароль пользователя, сверяет его с значением в БД.
+     * Если значения совпадает, шифрует новый пароль и изменяет его в БД.
+     */
     @RequestMapping(value = "/change/password", method = RequestMethod.PUT)
     public ResponseEntity<?> changePassword(@RequestHeader(name = "Authorization") String token,
                                             @RequestBody ChangePasswordInput changePasswordInput) {
@@ -257,6 +290,11 @@ public class AuthorizationController {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
     }
+
+    /**
+     * Метод для проверки подлинности ссылки подтверждения
+     * и в случае успеха изменяет данные в БД
+     **/
 
     @RequestMapping(value = "/confirm/{confirmation_token}", method = RequestMethod.PUT)
     public ResponseEntity<?> confirm(@PathVariable String confirmation_token) {
@@ -283,6 +321,12 @@ public class AuthorizationController {
         private String username;
         private String password;
     }
+
+    /**
+     * Метод принимает в себя форму аутентификации с именем пользователя и паролем,
+     * сверяет их с данным в БД. В случае успеха гененрирует токен сессии, заносит его в БД
+     * и возвращает в качестве тела ответа.
+     */
 
     @RequestMapping(value = "/authentication", method = RequestMethod.POST)
     public ResponseEntity<?> authentication( @Valid @RequestBody(required = false) AuthenticationForm authenticationForm,
@@ -318,6 +362,10 @@ public class AuthorizationController {
         }
     }
 
+    /**
+     * Метод изменяющий состояние токена в БД на не активное. Обнуляет сессию.
+     */
+
     @CrossOrigin
     @RequestMapping(value = "/logout", method = RequestMethod.DELETE)
     public ResponseEntity<?> logout( @RequestHeader(value = "Authorization") String token ) {
@@ -331,6 +379,11 @@ public class AuthorizationController {
                     HttpStatus.BAD_REQUEST);
         }
     }
+
+    /**
+     * Метод аналогичный предыдущему выполняющий действия со всеми токенами,
+     * принадлежащие пользователю.
+     */
 
     @CrossOrigin
     @RequestMapping(value = "/logout/all", method = RequestMethod.DELETE)

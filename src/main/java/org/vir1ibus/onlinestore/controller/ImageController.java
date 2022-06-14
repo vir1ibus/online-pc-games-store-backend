@@ -18,6 +18,12 @@ import java.nio.file.Path;
 @RequestMapping("/image")
 public class ImageController {
 
+    /**
+     * Проверяет наличие папки с названием "media" в директории приложения.
+     * В случае успеха возвращает полный путь до неё в системе.
+     * Иначе создаёт её и также возвращает полный путь.
+     */
+
     public static String getOrCreateMediaFolder() {
         try {
             Path media = Path.of("media");
@@ -27,6 +33,12 @@ public class ImageController {
         }
     }
 
+    /**
+     * Проверяет наличие папки с переданным в директории приложения.
+     * В случае успеха возвращает полный путь до неё в системе.
+     * Иначе создаёт её и также возвращает полный путь.
+     */
+
     public static String getOrCreateFolder(String parentPath, String name) {
         try {
             Path path = Path.of(parentPath + "/" + name);
@@ -35,6 +47,11 @@ public class ImageController {
             throw new RuntimeException(e);
         }
     }
+
+    /**
+     * Метод добавляет в папку "media" изображения, генерируя для них новые названия
+     * и возвращает их в качестве результата.
+     */
 
     public static String addImage(String folder, String imageName, MultipartFile image) {
         try {
@@ -50,6 +67,11 @@ public class ImageController {
             return null;
         }
     }
+
+    /**
+     * Метод вызывается при REST запросе с URI = /image и GET параметром,
+     * содержащий путь до требуемого изображения.
+     */
 
     @RequestMapping(value = "", method = RequestMethod.GET)
     public void getImage(@RequestParam String path, HttpServletResponse response) throws IOException {

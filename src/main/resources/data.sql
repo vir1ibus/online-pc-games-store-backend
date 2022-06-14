@@ -30,12 +30,12 @@ INSERT INTO developer (id, title, img) VALUES ('fromsoftware', 'FromSoftware', '
                                               ('quantic-dream', 'Quantic Dream', null),
                                               ('ubisoft-montreal', 'Ubisoft Montreal', 'Y5WE404-2bk9n1YqgAZ4xv8GQLQEr5gg.webp');
 
-INSERT INTO item (id, title, img, price, discount, date_realise, language_support, platform, developer_id, publisher_id, item_type_id, region_activation_id, service_activation_id) VALUES
-('dark-souls-3', 'Dark Souls 3', 'DA0Sw1Ctg36KcQO8OAo0IsDwZmDgzQ6H.jpg', 1799, 28, '2016-04-12', 'Русский (интерфейс)', 'PC', 'fromsoftware', 'bandai-namco', 1, 3, 5),
-('squad', 'Squad', 'h5fW18djjHwlLPzz0QXULYlrE_3_amiA.jpg', 1099, 9, '2015-12-15', 'Русский (интерфейс)', 'PC', 'offworld-industries', 'offworld-industries', 1, 2, 5),
-('hitman-absolution', 'Hitman: Absolution', 'SAcsUR9E5fyXEgmYYD7GZBddp_RKrxZD.jpg', 399, 75, '2012-11-19', 'Полностью на руссом', 'PC и Mac', 'io-interactive', 'io-interactive', 1, 3, 5),
-('detroit-become-human', 'Detroit: Become Human', '0Q6C2ZECyPVivaFmWNOryAks0jZ-ZSNj.jpg', 1628, 45, '2020-06-18', 'Полностью на русском', 'PC', 'quantic-dream', 'quantic-dream', 1, 4, 5),
-('assassins-creed-odyssey', 'Assassin''s Creed Odyssey', 'Cnsl_LXTZO8eBh1Nl7pnqsN83yDjiAZo.jpg', 2499, 36, '2018-10-05', 'Полностью на русском', 'PC', 'ubisoft-montreal', 'ubisoft', 1, 3, 6);
+INSERT INTO item (id, title, img, price, discount, result_price, date_realise, language_support, platform, developer_id, publisher_id, item_type_id, region_activation_id, service_activation_id) VALUES
+('dark-souls-3', 'Dark Souls 3', 'DA0Sw1Ctg36KcQO8OAo0IsDwZmDgzQ6H.jpg', 1799, 28, 1295, '2016-04-12', 'Русский (интерфейс)', 'PC', 'fromsoftware', 'bandai-namco', 1, 3, 5),
+('squad', 'Squad', 'h5fW18djjHwlLPzz0QXULYlrE_3_amiA.jpg', 1099, 9, 1000, '2015-12-15', 'Русский (интерфейс)', 'PC', 'offworld-industries', 'offworld-industries', 1, 2, 5),
+('hitman-absolution', 'Hitman: Absolution', 'SAcsUR9E5fyXEgmYYD7GZBddp_RKrxZD.jpg', 399, 75, 100, '2012-11-19', 'Полностью на руссом', 'PC и Mac', 'io-interactive', 'io-interactive', 1, 3, 5),
+('detroit-become-human', 'Detroit: Become Human', '0Q6C2ZECyPVivaFmWNOryAks0jZ-ZSNj.jpg', 1628, 45, 895, '2020-06-18', 'Полностью на русском', 'PC', 'quantic-dream', 'quantic-dream', 1, 4, 5),
+('assassins-creed-odyssey', 'Assassin''s Creed Odyssey', 'Cnsl_LXTZO8eBh1Nl7pnqsN83yDjiAZo.jpg', 2499, 36, 1599, '2018-10-05', 'Полностью на русском', 'PC', 'ubisoft-montreal', 'ubisoft', 1, 3, 6);
 
 INSERT INTO description (title, text, item_id) VALUES ('Не забывай сохраняться у костра', 'Dark Souls 3, заключительная часть трилогии от студии FromSoftware Inc., погрузит вас в мрачный и безжалостный мир. Призер «Лучшая RPG» на GamesCom 2015 и одна из самых ожидаемых игр 2016 года наконец-то вышла на PC, PlayStation 4 и Xbox One! Dark Souls 3 дает игрокам огромную свободу для изучения мира, графику нового поколения, напряженные схватки, традиционную атмосферу безнадежности и страданий, невиданных ранее безжалостных боссов, новые опасности и приключения. Если вы не боитесь трудностей, то эта игра именно для вас!
 

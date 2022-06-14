@@ -4,10 +4,9 @@ import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-import java.io.File;
-
 @SpringBootApplication
 public class OnlinePcGamesStoreApplication {
+
     public static void main(String[] args) {
         try {
             SpringApplication.run(OnlinePcGamesStoreApplication.class, args);

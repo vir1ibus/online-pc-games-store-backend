@@ -17,6 +17,7 @@ import org.vir1ibus.onlinestore.repository.BasketRepository;
 import org.vir1ibus.onlinestore.repository.PurchaseRepository;
 import org.vir1ibus.onlinestore.service.EmailService;
 
+import javax.servlet.http.HttpServletRequest;
 import java.math.BigDecimal;
 import java.util.Currency;
 import java.util.NoSuchElementException;
@@ -33,7 +34,11 @@ public class PaymentController {
     private final ActivateKeyRepository activateKeyRepository;
     private final EmailService emailService;
 
-    public PaymentController(AuthorizationTokenRepository authorizationTokenRepository, PurchaseRepository purchaseRepository, BasketRepository basketRepository, ActivateKeyRepository activateKeyRepository, EmailService emailService) {
+    public PaymentController(AuthorizationTokenRepository authorizationTokenRepository,
+                             PurchaseRepository purchaseRepository,
+                             BasketRepository basketRepository,
+                             ActivateKeyRepository activateKeyRepository,
+                             EmailService emailService) {
         this.authorizationTokenRepository = authorizationTokenRepository;
         this.purchaseRepository = purchaseRepository;
         this.basketRepository = basketRepository;
@@ -41,8 +46,12 @@ public class PaymentController {
         this.emailService = emailService;
     }
 
-    private final String publicKey = "48e7qUxn9T7RyYE1MVZswX1FRSbE6iyCj2gCRwwF3Dnh5XrasNTx3BGPiMsyXQFNKQhvukniQG8RTVhYm3iPwJmWXF5cY7uu215ogrg9ZpH95YoEZigoQgq9Yi3kGtjEb6kFNgfuz8ZcZaYhm7u3tk4Yctt5ztzgrzwFcstnua1BcW2AtA2uZVRcLhXAM";
-    private final String secretKey = "eyJ2ZXJzaW9uIjoiUDJQIiwiZGF0YSI6eyJwYXlpbl9tZXJjaGFudF9zaXRlX3VpZCI6InM4dmRxOS0wMCIsInVzZXJfaWQiOiI3OTMwODA5ODg4MiIsInNlY3JldCI6ImFmZGI5ZGZlYTBhNTkwODY1YjYyYjdkYTExNWQzMTg0ZWJhZTlhZGRkMTA2ZTU1MzJlY2EzNmY3NmRkZGQ4ZTYifX0=";
+    private final String publicKey = "48e7qUxn9T7RyYE1MVZswX1FRSbE6iyCj2gCRwwF3Dnh5XrasNTx3BGPiMsyXQFNKQhvukniQG8RT" +
+            "VhYm3iPwJmWXF5cY7uu215ogrg9ZpH95YoEZigoQgq9Yi3kGtjEb6kFNgfuz8ZcZaYhm7u3tk4Yctt5ztzgrzwFcstnua1BcW2AtA2" +
+            "uZVRcLhXAM";
+    private final String secretKey = "eyJ2ZXJzaW9uIjoiUDJQIiwiZGF0YSI6eyJwYXlpbl9tZXJjaGFudF9zaXRlX3VpZCI6InM4dmRx" +
+            "OS0wMCIsInVzZXJfaWQiOiI3OTMwODA5ODg4MiIsInNlY3JldCI6ImFmZGI5ZGZlYTBhNTkwODY1YjYyYjdkYTExNWQzMTg0ZWJhZ" +
+            "TlhZGRkMTA2ZTU1MzJlY2EzNmY3NmRkZGQ4ZTYifX0=";
     private final BillPaymentClient client = BillPaymentClientFactory.createDefault(secretKey);
 
     private User isAuthenticated(String token) throws NullPointerException, NoSuchElementException {
@@ -54,12 +63,15 @@ public class PaymentController {
         }
     }
 
+    /*
+        Осуществляет получение информации о корзине пользователя, создаёт счёт во внешней системе QIWI
+        возвращает ссылку для перехода на страницу оплаты.
+     */
+
     @RequestMapping(value = "/buy/items", method = RequestMethod.GET)
-    public ResponseEntity<?> purchaseItem(@RequestHeader(value = "Authorization") String token) {
+    public ResponseEntity<?> purchaseItem(@RequestHeader(value = "Authorization") String token,
+                                          HttpServletRequest httpServletRequest) {
         try {
-            // 8546c72b4c3e2ab0a71934a92cf43f74
-            // public key 48e7qUxn9T7RyYE1MVZswX1FRSbE6iyCj2gCRwwF3Dnh5XrasNTx3BGPiMsyXQFNKQhvukniQG8RTVhYm3iPwJmWXF5cY7uu215ogrg9ZpH95YoEZigoQgq9Yi3kGtjEb6kFNgfuz8ZcZaYhm7u3tk4Yctt5ztzgrzwFcstnua1BcW2AtA2uZVRcLhXAM
-            // secret key eyJ2ZXJzaW9uIjoiUDJQIiwiZGF0YSI6eyJwYXlpbl9tZXJjaGFudF9zaXRlX3VpZCI6InM4dmRxOS0wMCIsInVzZXJfaWQiOiI3OTMwODA5ODg4MiIsInNlY3JldCI6ImFmZGI5ZGZlYTBhNTkwODY1YjYyYjdkYTExNWQzMTg0ZWJhZTlhZGRkMTA2ZTU1MzJlY2EzNmY3NmRkZGQ4ZTYifX0=
             User buyer = isAuthenticated(token);
             Basket basket = buyer.getBasket();
             Set<Item> purchasedItems = basket.getItems();
@@ -83,22 +95,6 @@ public class PaymentController {
             basket.getItems().clear();
             basketRepository.save(basket);
 
-//            CreateBillInfo billInfo = new CreateBillInfo(
-//                    billId,
-//                    new MoneyAmount(
-//                            BigDecimal.valueOf(sumPurchase),
-//                            Currency.getInstance("RUB")
-//                    ),
-//                    "Оплата заказа №" + purchase.getId() + " на vir1ibus shop",
-//                    ZonedDateTime.now().plusMinutes(30),
-//                    new Customer(
-//                            buyer.getEmail(),
-//                            buyer.getId(),
-//                            ""
-//                    ),
-//                    "http://localhost:8080/payment/success?billId=" + billId
-//            );
-
             PaymentInfo paymentInfo = new PaymentInfo(
                     publicKey,
                     new MoneyAmount(
@@ -106,13 +102,18 @@ public class PaymentController {
                             Currency.getInstance("RUB")
                     ),
                     billId,
-                    "http://localhost:8080/payment/success?billId=" + billId
+                    httpServletRequest.getHeader("referer") + "/payment/success?billId=" + billId
             );
             return ResponseEntity.ok(client.createPaymentForm(paymentInfo));
         } catch (NullPointerException | NoSuchElementException e) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
     }
+
+    /*
+    Метод проверяющий статус платежа, в случае успеха отправляет на электронную почту пользователя
+    ключи активации для купленных продуктов.
+     */
 
     @RequestMapping(value = "/success", method = RequestMethod.GET)
     public ResponseEntity<?> successPurchase(@RequestHeader(value = "Authorization") String token, @RequestParam String billId) {
