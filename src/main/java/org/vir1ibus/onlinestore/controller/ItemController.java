@@ -21,7 +21,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.NotBlank;
 import java.net.URI;
+import java.time.LocalDate;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/")
@@ -42,9 +44,21 @@ public class ItemController {
     private final RegionActivationRepository regionActivationRepository;
     private final ServiceActivationRepository serviceActivationRepository;
     private final SystemRequirementRepository systemRequirementRepository;
+    private final DescriptionRepository descriptionRepository;
+    private final ScreenshotRepository screenshotRepository;
+    private final ItemHasSystemRequirementRepository itemHasSystemRequirementRepository;
+    private final ActivateKeyRepository activateKeyRepository;
 
     public ItemController(UserRepository userRepository, ItemRepository itemRepository, GenreRepository genreRepository,
-                          AuthorizationTokenRepository authorizationTokenRepository, BasketRepository basketRepository, PublisherRepository publisherRepository, DeveloperRepository developerRepository, ActivateKeyRepository activateKeyRepository, PurchaseRepository purchaseRepository, ReviewRepository reviewRepository, RoleRepository roleRepository, ItemTypeRepository itemTypeRepository, RegionActivationRepository regionActivationRepository, ServiceActivationRepository serviceActivationRepository, SystemRequirementRepository systemRequirementRepository) {
+                          AuthorizationTokenRepository authorizationTokenRepository, BasketRepository basketRepository,
+                          PublisherRepository publisherRepository, DeveloperRepository developerRepository,
+                          ActivateKeyRepository activateKeyRepository, PurchaseRepository purchaseRepository,
+                          ReviewRepository reviewRepository, RoleRepository roleRepository,
+                          ItemTypeRepository itemTypeRepository, RegionActivationRepository regionActivationRepository,
+                          ServiceActivationRepository serviceActivationRepository,
+                          SystemRequirementRepository systemRequirementRepository,
+                          DescriptionRepository descriptionRepository, ScreenshotRepository screenshotRepository,
+                          ItemHasSystemRequirementRepository itemHasSystemRequirementRepository) {
         this.userRepository = userRepository;
         this.itemRepository = itemRepository;
         this.genreRepository = genreRepository;
@@ -59,6 +73,10 @@ public class ItemController {
         this.regionActivationRepository = regionActivationRepository;
         this.serviceActivationRepository = serviceActivationRepository;
         this.systemRequirementRepository = systemRequirementRepository;
+        this.descriptionRepository = descriptionRepository;
+        this.screenshotRepository = screenshotRepository;
+        this.itemHasSystemRequirementRepository = itemHasSystemRequirementRepository;
+        this.activateKeyRepository = activateKeyRepository;
     }
 
     private User isAuthenticated(String token) throws NullPointerException, NoSuchElementException {
@@ -518,6 +536,91 @@ public class ItemController {
                         return new ResponseEntity<>(HttpStatus.OK);
                     default:
                         throw new NullPointerException();
+                }
+            } else {
+                return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+            }
+        } catch (NullPointerException | NoSuchElementException e) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @RequestMapping(value = "/add/item", method = RequestMethod.POST)
+    public ResponseEntity<String> createItem(@RequestHeader(value = "Authorization") String token,
+                                             @RequestParam String title,
+                                             @RequestParam Integer price,
+                                             @RequestParam Integer discount,
+                                             @RequestParam Integer resultPrice,
+                                             @RequestParam String languageSupport,
+                                             @RequestParam String dateRealise,
+                                             @RequestParam String titleDescription,
+                                             @RequestParam String textDescription,
+                                             @RequestParam String platform,
+                                             @RequestParam Integer regionActivation,
+                                             @RequestParam String publisher,
+                                             @RequestParam String developer,
+                                             @RequestParam Integer itemType,
+                                             @RequestParam Integer serviceActivation,
+                                             @RequestParam Integer[] systemRequirementId,
+                                             @RequestParam String[] systemRequirementValue,
+                                             @RequestParam Integer[] genre,
+                                             @RequestParam String[] activateKeys,
+                                             @RequestParam MultipartFile img,
+                                             @RequestParam List<MultipartFile> screenshots,
+                                             HttpServletRequest httpServletRequest) {
+        try {
+            if(isModerator(token) || isAdmin(token)) {
+                if(!itemRepository.findById(StringFormatter.toId(title)).isPresent()) {
+                    Item item = itemRepository.save(
+                            Item.builder()
+                                    .id(StringFormatter.toId(title))
+                                    .title(title)
+                                    .img(ImageController.addImage("item", Cryptography.generatorString(32), img))
+                                    .price(price)
+                                    .discount(discount)
+                                    .resultPrice(resultPrice)
+                                    .languageSupport(languageSupport)
+                                    .dateRealise(LocalDate.parse(dateRealise))
+                                    .platform(platform)
+                                    .regionActivation(regionActivationRepository.getById(regionActivation))
+                                    .publisher(publisherRepository.getById(publisher))
+                                    .developer(developerRepository.getById(developer))
+                                    .itemType(itemTypeRepository.getById(itemType))
+                                    .serviceActivation(serviceActivationRepository.getById(serviceActivation)).build());
+                    descriptionRepository.save(Description.builder()
+                            .title(titleDescription)
+                            .text(textDescription)
+                            .item(item).build());
+                    genreRepository.findAllById(List.of(genre)).forEach(value -> {
+                        item.getGenres().add(value);
+                    });
+                    itemRepository.save(item);
+                    for(MultipartFile screenshot : screenshots) {
+                        screenshotRepository.save(
+                                Screenshot.builder()
+                                        .path(ImageController.addImage("item/screenshot", Cryptography.generatorString(32), screenshot))
+                                        .item(item).build());
+                    }
+                    for(int i = 0; i < systemRequirementId.length; i++) {
+                        itemHasSystemRequirementRepository.save(ItemHasSystemRequirement.builder()
+                                .itemHasSystemRequirementId(
+                                        ItemHasSystemRequirementId.builder()
+                                                .itemId(item.getId())
+                                                .systemRequirementId(systemRequirementId[i])
+                                                .build())
+                                .item(item)
+                                .systemRequirement(systemRequirementRepository.getById(systemRequirementId[i]))
+                                .value(systemRequirementValue[i]).build());
+                    }
+                    for(String activateKey : activateKeys) {
+                        activateKeyRepository.save(ActivateKey.builder()
+                                .item(item)
+                                .value(activateKey)
+                                .build());
+                    }
+                    return new ResponseEntity<>(HttpStatus.OK);
+                } else {
+                    throw new NoSuchElementException();
                 }
             } else {
                 return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);

@@ -98,23 +98,28 @@ public class Item extends CustomJSONObject {
 
     @NotNull
     @OneToMany(mappedBy = "item")
+    @Builder.Default
     private Set<Screenshot> screenshots = new LinkedHashSet<>();
 
     @NotNull
     @OneToMany(mappedBy = "item")
+    @Builder.Default
     private Set<Trailer> trailers = new LinkedHashSet<>();
     @NotNull
     @OneToMany(mappedBy = "item")
+    @Builder.Default
     private Set<Review> reviews = new LinkedHashSet<>();
     @NotNull
     @OneToMany(mappedBy = "item")
-    private Set<ItemHasSystemRequirement> itemHasSystemRequirement;
+    @Builder.Default
+    private Set<ItemHasSystemRequirement> itemHasSystemRequirement = new LinkedHashSet<>();
 
     @NotNull
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(name = "genre_has_item",
             joinColumns = @JoinColumn(name = "item_id"),
             inverseJoinColumns = @JoinColumn(name = "genre_id"))
+    @Builder.Default
     private Set<Genre> genres = new LinkedHashSet<>();
 
     @OnDelete(action = OnDeleteAction.CASCADE)
@@ -126,6 +131,7 @@ public class Item extends CustomJSONObject {
     private Set<Purchase> purchases = new LinkedHashSet<>();
 
     @OneToMany(mappedBy = "item")
+    @Builder.Default
     private Set<ActivateKey> activateKeys = new LinkedHashSet<>();
 
     @Override
