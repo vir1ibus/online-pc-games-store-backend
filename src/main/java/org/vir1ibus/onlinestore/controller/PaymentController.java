@@ -7,6 +7,8 @@ import com.qiwi.billpayments.sdk.model.BillStatus;
 import com.qiwi.billpayments.sdk.model.MoneyAmount;
 import com.qiwi.billpayments.sdk.model.in.PaymentInfo;
 import com.qiwi.billpayments.sdk.model.out.BillResponse;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,6 +18,7 @@ import org.vir1ibus.onlinestore.database.repository.AuthorizationTokenRepository
 import org.vir1ibus.onlinestore.database.repository.BasketRepository;
 import org.vir1ibus.onlinestore.database.repository.PurchaseRepository;
 import org.vir1ibus.onlinestore.service.EmailService;
+import org.vir1ibus.onlinestore.utils.JSONConverter;
 
 import javax.servlet.http.HttpServletRequest;
 import java.math.BigDecimal;
@@ -77,23 +80,9 @@ public class PaymentController {
             Set<Item> purchasedItems = basket.getItems();
             Integer sumPurchase = 0;
             for (Item item : purchasedItems) {
-                if (item.getDiscount() > 0) {
-                    sumPurchase += item.getPrice() - (item.getPrice() / 100 * item.getDiscount());
-                } else {
-                    sumPurchase += item.getPrice();
-                }
+                sumPurchase += item.getResultPrice();
             }
-
             String billId = UUID.randomUUID().toString();
-
-            Purchase purchase = purchaseRepository.save(Purchase.builder()
-                    .buyer(buyer)
-                    .items(Set.copyOf(purchasedItems))
-                    .sum(sumPurchase)
-                    .billId(billId)
-                    .build());
-            basket.getItems().clear();
-            basketRepository.save(basket);
 
             PaymentInfo paymentInfo = new PaymentInfo(
                     publicKey,
@@ -104,10 +93,44 @@ public class PaymentController {
                     billId,
                     httpServletRequest.getHeader("referer") + "/payment/success?billId=" + billId
             );
-            return ResponseEntity.ok(client.createPaymentForm(paymentInfo));
+            String linkPaymentForm = client.createPaymentForm(paymentInfo);
+            Purchase purchase = purchaseRepository.save(Purchase.builder()
+                    .buyer(buyer)
+                    .items(Set.copyOf(purchasedItems))
+                    .sum(sumPurchase)
+                    .billId(billId)
+                    .linkPaymentForm(linkPaymentForm)
+                    .build());
+            basket.getItems().clear();
+            basketRepository.save(basket);
+            return ResponseEntity.ok(linkPaymentForm);
         } catch (NullPointerException | NoSuchElementException e) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
+    }
+
+    public String successPurchase(String token, String billId) throws NullPointerException, NoSuchElementException, BillPaymentServiceException {
+        User buyer = isAuthenticated(token);
+        Purchase purchase = purchaseRepository.getPurchaseByBillIdAndBuyer(billId, isAuthenticated(token));
+        BillResponse response = client.getBillInfo(billId);
+        if(response.getStatus().getValue() == BillStatus.PAID && !purchase.getPaid()) {
+            purchase.setPaid(true);
+            Set<Item> purchasedItems = purchase.getItems();
+            for(Item item : purchasedItems) {
+                ActivateKey activateKey = activateKeyRepository.findFirstByItemAndPurchaseIsNull(item);
+                activateKey.setPurchase(purchase);
+                activateKeyRepository.save(activateKey);
+                purchase.getActivateKeys().add(activateKey);
+            }
+            purchaseRepository.save(purchase);
+            emailService.sendActivateKeys(buyer.getEmail(), purchase, purchase.getActivateKeys());
+            return "PAID";
+        } else if(response.getStatus().getValue() == BillStatus.WAITING){
+            return "WAITING";
+        } else if(response.getStatus().getValue() == BillStatus.EXPIRED || response.getStatus().getValue() == BillStatus.REJECTED) {
+            return "REJECTED";
+        }
+       throw new NullPointerException();
     }
 
     /*
@@ -116,30 +139,36 @@ public class PaymentController {
      */
 
     @RequestMapping(value = "/success", method = RequestMethod.GET)
-    public ResponseEntity<?> successPurchase(@RequestHeader(value = "Authorization") String token, @RequestParam String billId) {
+    public ResponseEntity<?> successPurchaseResponse(@RequestHeader(value = "Authorization") String token, @RequestParam String billId) {
         try {
-            User buyer = isAuthenticated(token);
-            Purchase purchase = purchaseRepository.getPurchaseByBillIdAndBuyer(billId, isAuthenticated(token));
-            BillResponse response = client.getBillInfo(billId);
-            if(response.getStatus().getValue() == BillStatus.PAID && !purchase.getPaid()) {
-                purchase.setPaid(true);
-                Set<Item> purchasedItems = purchase.getItems();
-                for(Item item : purchasedItems) {
-                    ActivateKey activateKey = activateKeyRepository.findFirstByItemAndPurchaseIsNull(item);
-                    activateKey.setPurchase(purchase);
-                    activateKeyRepository.save(activateKey);
-                    purchase.getActivateKeys().add(activateKey);
-                }
-                purchaseRepository.save(purchase);
-                emailService.sendActivateKeys(buyer.getEmail(), purchase, purchase.getActivateKeys());
-                return new ResponseEntity<>(HttpStatus.OK);
-            } else if(response.getStatus().getValue() == BillStatus.WAITING){
-                return new ResponseEntity<>(HttpStatus.ACCEPTED);
-            } else if(response.getStatus().getValue() == BillStatus.EXPIRED || response.getStatus().getValue() == BillStatus.REJECTED) {
-                return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+            switch (successPurchase(token, billId)) {
+                case "PAID":
+                    return new ResponseEntity<>(HttpStatus.OK);
+                case "WAITING":
+                    return new ResponseEntity<>(HttpStatus.ACCEPTED);
+                case "REJECTED":
+                    return new ResponseEntity<>(HttpStatus.FORBIDDEN);
             }
-            return new ResponseEntity<>(HttpStatus.OK);
+            throw new NullPointerException();
         } catch (NullPointerException | NoSuchElementException | BillPaymentServiceException e) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @RequestMapping(value = "/purchases", method = RequestMethod.GET)
+    public ResponseEntity<?> getPurchases(@RequestHeader(value = "Authorization") String token) {
+        try {
+            JSONArray purchases = JSONConverter.toJsonArray(isAuthenticated(token).getPurchases());
+            for (int i = 0; i < purchases.length(); i++) {
+                JSONObject purchase = purchases.getJSONObject(i);
+                if((boolean) purchase.get("paid")) {
+                    purchase.put("status", "PAID");
+                } else {
+                    purchase.put("status", successPurchase(token, String.valueOf(purchase.get("billId"))));
+                }
+            }
+            return new ResponseEntity<>(purchases.toString(), HttpStatus.OK);
+        } catch (NullPointerException | NoSuchElementException e) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
     }

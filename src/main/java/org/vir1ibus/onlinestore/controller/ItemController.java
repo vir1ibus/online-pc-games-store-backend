@@ -262,7 +262,7 @@ public class ItemController {
                     HttpStatus.OK
             );
         } catch (NullPointerException | NoSuchElementException e) {
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
     }
 
@@ -278,7 +278,7 @@ public class ItemController {
                     HttpStatus.OK
             );
         } catch (NullPointerException | NoSuchElementException e) {
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
     }
 
@@ -423,6 +423,8 @@ public class ItemController {
         try {
             return new ResponseEntity<>(
                     new JSONObject()
+                            .put("publisher", JSONConverter.toMinimalJsonArray(publisherRepository.findAll()))
+                            .put("developer", JSONConverter.toMinimalJsonArray(developerRepository.findAll()))
                             .put("genre", JSONConverter.toJsonArray(genreRepository.findAll()))
                             .put("itemType", JSONConverter.toJsonArray(itemTypeRepository.findAll()))
                             .put("regionActivation", JSONConverter.toJsonArray(regionActivationRepository.findAll()))
@@ -492,7 +494,7 @@ public class ItemController {
     /*
     Удаление позации доступных категорий для товаров.
      */
-
+    @CrossOrigin
     @RequestMapping(value = "/delete/{categoryType}/{id}", method = RequestMethod.DELETE)
     public ResponseEntity<String> deleteCategory(@RequestHeader(value = "Authorization") String token,
                                               @PathVariable String categoryType, @PathVariable Integer id) {

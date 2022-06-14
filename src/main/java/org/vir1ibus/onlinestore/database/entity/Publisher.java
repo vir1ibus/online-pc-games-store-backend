@@ -43,7 +43,8 @@ public class Publisher extends CustomJSONObject {
                 .put("id", this.id)
                 .put("title", this.title)
                 .put("img", this.img)
-                .put("items", JSONConverter.toMinimalJsonArray(this.items));
+                .put("items", JSONConverter.toMinimalJsonArray(this.items))
+                .put("count_items", this.items.size());
     }
 
     @Override

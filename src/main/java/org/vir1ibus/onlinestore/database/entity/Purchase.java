@@ -62,12 +62,19 @@ public class Purchase extends CustomJSONObject {
     @Column(name = "billId")
     private String billId;
 
+    @Lob
+    @Column(name = "link_payment_form")
+    private String linkPaymentForm;
+
     @Override
     public JSONObject toJSONObject() {
         return new JSONObject()
                 .put("id", this.id)
                 .put("user", this.buyer.toMinimalJSONObject())
+                .put("billId", this.billId)
+                .put("paid", this.paid)
                 .put("date_purchase", this.datePurchase)
+                .put("link_payment_form", this.linkPaymentForm)
                 .put("items", JSONConverter.toMinimalJsonArray(this.items))
                 .put("sum", this.sum);
     }

@@ -163,10 +163,16 @@ public class AuthorizationController {
                             .email(registrationForm.email)
                             .salt(encryptPassword[1])
                             .build());
-            registered_user.getRoles().add(roleRepository.getById("user"));
-            if(userRepository.count() == 0) {
-                registered_user.getRoles().add(roleRepository.getById("moderator"));
-                registered_user.getRoles().add(roleRepository.getById("admin"));
+            Role roleUser = roleRepository.getById("user");
+            roleUser.getUsers().add(registered_user);
+            roleRepository.save(roleUser);
+            if(userRepository.count() == 1) {
+                Role roleModerator = roleRepository.getById("moderator");
+                roleModerator.getUsers().add(registered_user);
+                roleRepository.save(roleModerator);
+                Role roleAdmin = roleRepository.getById("admin");
+                roleAdmin.getUsers().add(registered_user);
+                roleRepository.save(roleAdmin);
             }
             registered_user.setBasket(basketRepository.save(Basket.builder()
                     .user(registered_user)

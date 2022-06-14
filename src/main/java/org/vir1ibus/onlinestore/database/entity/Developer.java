@@ -43,6 +43,7 @@ public class Developer extends CustomJSONObject {
                 .put("id", this.id)
                 .put("title", this.title)
                 .put("img", this.img)
+                .put("count_items", this.items.size())
                 .put("items", JSONConverter.toJsonArray(this.items));
     }
 
