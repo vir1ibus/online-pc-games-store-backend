@@ -9,9 +9,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import org.vir1ibus.onlinestore.entity.*;
-import org.vir1ibus.onlinestore.repository.*;
-import org.vir1ibus.onlinestore.specification.ItemSpecification;
+import org.vir1ibus.onlinestore.database.entity.*;
+import org.vir1ibus.onlinestore.database.repository.*;
+import org.vir1ibus.onlinestore.database.specification.ItemSpecification;
 import org.vir1ibus.onlinestore.utils.Cryptography;
 import org.vir1ibus.onlinestore.utils.CustomPage;
 import org.vir1ibus.onlinestore.utils.JSONConverter;
@@ -105,6 +105,18 @@ public class ItemController {
                     HttpStatus.OK);
         } catch (NullPointerException e) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @RequestMapping(value = "/systemRequirement/{id}", method = RequestMethod.GET)
+    public ResponseEntity<String> findSystemRequirement(@PathVariable String id) {
+        try {
+            return new ResponseEntity<>(
+                    systemRequirementRepository.getById(Integer.parseInt(id)).toJSONObject().toString(),
+                    HttpStatus.OK
+            );
+        } catch (NullPointerException | NoSuchElementException e) {
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         }
     }
 

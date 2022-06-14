@@ -4,12 +4,11 @@ import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Component;
-import org.vir1ibus.onlinestore.entity.ActivateKey;
-import org.vir1ibus.onlinestore.entity.Purchase;
+import org.vir1ibus.onlinestore.database.entity.ActivateKey;
+import org.vir1ibus.onlinestore.database.entity.Purchase;
 
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
-import java.util.List;
 import java.util.Set;
 
 @Component

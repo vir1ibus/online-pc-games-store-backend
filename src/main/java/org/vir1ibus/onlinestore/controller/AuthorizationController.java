@@ -11,9 +11,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
-import org.vir1ibus.onlinestore.entity.*;
+import org.vir1ibus.onlinestore.database.entity.*;
 import org.vir1ibus.onlinestore.exception.AuthorizationException;
-import org.vir1ibus.onlinestore.repository.*;
+import org.vir1ibus.onlinestore.database.repository.*;
 import org.vir1ibus.onlinestore.service.EmailService;
 import org.vir1ibus.onlinestore.utils.Cryptography;
 
@@ -26,10 +26,10 @@ import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Pattern;
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.Set;
 
 @RestController
 @RequestMapping("/authorization")
@@ -163,9 +163,11 @@ public class AuthorizationController {
                             .email(registrationForm.email)
                             .salt(encryptPassword[1])
                             .build());
-            Role role = roleRepository.findById("user").get();
-            role.getUsers().add(registered_user);
-            roleRepository.save(role);
+            registered_user.getRoles().add(roleRepository.getById("user"));
+            if(userRepository.count() == 0) {
+                registered_user.getRoles().add(roleRepository.getById("moderator"));
+                registered_user.getRoles().add(roleRepository.getById("admin"));
+            }
             registered_user.setBasket(basketRepository.save(Basket.builder()
                     .user(registered_user)
                     .build()));
@@ -399,6 +401,17 @@ public class AuthorizationController {
                     new JSONObject()
             .put("error", "token not found"),
                     HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @CrossOrigin
+    @RequestMapping(value = "/delete", method = RequestMethod.DELETE)
+    public ResponseEntity<?> deleteAccount( @RequestHeader(value = "Authorization") String token ) {
+        try {
+            userRepository.delete(isAuthenticated(token));
+            return new ResponseEntity<>(HttpStatus.OK);
+        } catch (NullPointerException | NoSuchElementException e) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         }
     }
 }

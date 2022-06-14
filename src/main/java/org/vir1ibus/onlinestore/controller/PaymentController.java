@@ -10,11 +10,11 @@ import com.qiwi.billpayments.sdk.model.out.BillResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.vir1ibus.onlinestore.entity.*;
-import org.vir1ibus.onlinestore.repository.ActivateKeyRepository;
-import org.vir1ibus.onlinestore.repository.AuthorizationTokenRepository;
-import org.vir1ibus.onlinestore.repository.BasketRepository;
-import org.vir1ibus.onlinestore.repository.PurchaseRepository;
+import org.vir1ibus.onlinestore.database.entity.*;
+import org.vir1ibus.onlinestore.database.repository.ActivateKeyRepository;
+import org.vir1ibus.onlinestore.database.repository.AuthorizationTokenRepository;
+import org.vir1ibus.onlinestore.database.repository.BasketRepository;
+import org.vir1ibus.onlinestore.database.repository.PurchaseRepository;
 import org.vir1ibus.onlinestore.service.EmailService;
 
 import javax.servlet.http.HttpServletRequest;
