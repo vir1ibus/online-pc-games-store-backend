@@ -44,15 +44,15 @@ public class User extends CustomJSONObject {
     private String salt;
 
     @OnDelete(action = OnDeleteAction.CASCADE)
-    @OneToOne
+    @OneToOne(cascade = CascadeType.REMOVE)
     @JoinColumn(name = "cart_id", referencedColumnName = "id")
     private Basket basket;
     @OnDelete(action = OnDeleteAction.CASCADE)
-    @OneToOne
+    @OneToOne(cascade = CascadeType.REMOVE)
     @JoinColumn(name = "liked_id", referencedColumnName = "id")
     private Liked liked;
     @OnDelete(action = OnDeleteAction.CASCADE)
-    @OneToMany(mappedBy = "buyer")
+    @OneToMany(mappedBy = "buyer", cascade = CascadeType.REMOVE)
     private Set<Purchase> purchases = new LinkedHashSet<>();
 
     @OnDelete(action = OnDeleteAction.CASCADE)
@@ -62,7 +62,7 @@ public class User extends CustomJSONObject {
             inverseJoinColumns = @JoinColumn(name = "role_name"))
     private Set<Role> roles = new LinkedHashSet<>();
     @OnDelete(action = OnDeleteAction.CASCADE)
-    @OneToMany(mappedBy = "author")
+    @OneToMany(mappedBy = "author", cascade = CascadeType.REMOVE)
     private Set<Review> reviews = new LinkedHashSet<>();
 
     @Override

@@ -33,6 +33,7 @@ import java.util.NoSuchElementException;
 
 @RestController
 @RequestMapping("/authorization")
+
 public class AuthorizationController {
 
     private final UserRepository userRepository;
@@ -104,7 +105,7 @@ public class AuthorizationController {
     @Getter
     @Setter
     @AllArgsConstructor
-    private static class RegistrationForm {
+    public static class RegistrationForm {
         @Pattern(regexp = "[a-zA-Z0-9._-]{3,75}", message = "The username must be at least 3 characters long and contain only allowed characters (dot, underscore, dash).")
         private String username;
 
@@ -156,7 +157,7 @@ public class AuthorizationController {
                         HttpStatus.CONFLICT);
             }
             String[] encryptPassword = Cryptography.encrypt(registrationForm.password);
-            User registered_user = userRepository.save(User.builder()
+            User registeredUser = userRepository.save(User.builder()
                             .id(Cryptography.generatorString(10))
                             .username(registrationForm.username)
                             .password(encryptPassword[0])
@@ -164,25 +165,25 @@ public class AuthorizationController {
                             .salt(encryptPassword[1])
                             .build());
             Role roleUser = roleRepository.getById("user");
-            roleUser.getUsers().add(registered_user);
+            roleUser.getUsers().add(registeredUser);
             roleRepository.save(roleUser);
             if(userRepository.count() == 1) {
                 Role roleModerator = roleRepository.getById("moderator");
-                roleModerator.getUsers().add(registered_user);
+                roleModerator.getUsers().add(registeredUser);
                 roleRepository.save(roleModerator);
                 Role roleAdmin = roleRepository.getById("admin");
-                roleAdmin.getUsers().add(registered_user);
+                roleAdmin.getUsers().add(registeredUser);
                 roleRepository.save(roleAdmin);
             }
-            registered_user.setBasket(basketRepository.save(Basket.builder()
-                    .user(registered_user)
+            registeredUser.setBasket(basketRepository.save(Basket.builder()
+                    .user(registeredUser)
                     .build()));
-            registered_user.setLiked(likedRepository.save(Liked.builder()
-                    .user(registered_user)
+            registeredUser.setLiked(likedRepository.save(Liked.builder()
+                    .user(registeredUser)
                     .build()));
             String confirm_token = Cryptography.generatorString(20);
             confirmationTokenRepository.save(ConfirmationToken.builder()
-                    .user(registered_user)
+                    .user(registeredUser)
                     .value(confirm_token)
                     .createdAt(LocalDateTime.now())
                     .email(registrationForm.getEmail())
@@ -190,7 +191,9 @@ public class AuthorizationController {
             emailService.sendConfirmationMessage(
                     registrationForm.email,
                     "Перейдите по ссылке " + httpServletRequest.getHeader("referer") + "confirm/" + confirm_token + " для подтверждения аккаунта.");
-            return new ResponseEntity<>(HttpStatus.CREATED);
+            return new ResponseEntity<>(
+                    registeredUser.getId(),
+                    HttpStatus.CREATED);
         } catch (ConstraintViolationException cve) {
             Iterator<ConstraintViolation<?>> constraintViolations = cve.getConstraintViolations().iterator();
             JSONObject jsonObject = new JSONObject();
