@@ -38,19 +38,14 @@ public class AuthorizationControllerTest {
     private AuthorizationTokenRepository authorizationTokenRepository;
 
     private static String id;
-    private static String username;
-    private static String email;
-    private static String password;
+    private static String username = "zaEzRcaUDvQkUQ";
+    private static String email = "zaEzRcaUDvQkUQ@zaEzRcaUDvQkUQ.ru";
+    private static String password = "zaEzRcaUDvQkUQ1";
     private static String token;
 
-    @BeforeAll
-    public static void setup() {
-        username = "zaEzRcaUDvQkUQ";
-        email = "zaEzRcaUDvQkUQ@zaEzRcaUDvQkUQ.ru";
-        password = "zaEzRcaUDvQkUQ1";
-        System.out.println(email);
-    }
-
+    /**
+     * Проверяет корректность регистрации и возвращаемого значения ID пользователя.
+     */
     @Test
     @Order(1)
     public void testRegistrationUser() throws Exception {
@@ -65,6 +60,10 @@ public class AuthorizationControllerTest {
         userRepository.save(userRepository.findById(id).get().setActive(true));
     }
 
+    /**
+     * Проверяет корректность аутентификации после регистрации,
+     * а также корректность токена для авторизации.
+     */
     @Test
     @Order(2)
     public void testAuthenticationUser() throws Exception {
@@ -79,6 +78,9 @@ public class AuthorizationControllerTest {
         Assertions.assertNotNull(authorizationTokenRepository.findTokenByValue(token));
     }
 
+    /**
+     * Проверяет работоспосбность функционала смены имени пользователя.
+     */
     @Test
     @Order(3)
     public void testChangeUsername() throws Exception {
@@ -93,6 +95,10 @@ public class AuthorizationControllerTest {
         Assertions.assertEquals(userRepository.findById(id).get().getUsername(), username);
     }
 
+    /**
+     * Проверяет работоспосбность функционала выхода пользователя из аккаунта.
+     * (Деактивация токена)
+     */
     @Test
     @Order(4)
     public void testLogout() throws Exception {
@@ -103,6 +109,10 @@ public class AuthorizationControllerTest {
         Assertions.assertNull(authorizationTokenRepository.findTokenByValueAndActiveIsTrue(token));
     }
 
+    /**
+     * Проверяет работоспосбность функционала выхода пользователя из аккаунта.
+     * (Деактивация всех токенов)
+     */
     @Test
     @Order(5)
     public void testLogoutAll() throws Exception {
@@ -114,6 +124,9 @@ public class AuthorizationControllerTest {
         Assertions.assertEquals(authorizationTokenRepository.findAllByUserAndActiveIsTrue(userRepository.findById(id).get()).size(), 0);
     }
 
+    /**
+     * Проверяет работоспосбность функционала удаление пользователя из системы.
+     */
     @Test
     @Order(6)
     public void testDeleteUser() throws Exception {
