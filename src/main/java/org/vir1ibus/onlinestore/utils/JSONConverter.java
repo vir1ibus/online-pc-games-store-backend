@@ -56,4 +56,12 @@ public class JSONConverter {
         }
         return resultJSONArray;
     }
+
+    public static JSONArray toSelectMinimalJsonArray(List<? extends CustomJSONObject> inputSet) {
+        JSONArray resultJSONArray = new JSONArray();
+        for(CustomJSONObject element : inputSet) {
+            resultJSONArray.put(element.toSelectMinimalJSONObject());
+        }
+        return resultJSONArray;
+    }
 }

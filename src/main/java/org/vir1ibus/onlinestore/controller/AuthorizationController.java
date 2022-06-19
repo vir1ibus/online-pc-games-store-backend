@@ -33,7 +33,6 @@ import java.util.NoSuchElementException;
 
 @RestController
 @RequestMapping("/authorization")
-
 public class AuthorizationController {
 
     private final UserRepository userRepository;
@@ -206,6 +205,27 @@ public class AuthorizationController {
             return new ResponseEntity<>(
                     new JSONObject().put("error", "no request data").toString(),
                     HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @RequestMapping(value = "/send/confirmation-code/{username}", method = RequestMethod.PUT)
+    public ResponseEntity<?> reSendConfirmationCode(@PathVariable String username,
+                                                    HttpServletRequest httpServletRequest) {
+        try {
+            User user = userRepository.findByUsername(username);
+            String confirm_token = Cryptography.generatorString(20);
+            confirmationTokenRepository.save(ConfirmationToken.builder()
+                    .user(user)
+                    .value(confirm_token)
+                    .createdAt(LocalDateTime.now())
+                    .email(user.getEmail())
+                    .build());
+            emailService.sendConfirmationMessage(
+                    user.getEmail(),
+                    "Перейдите по ссылке " + httpServletRequest.getHeader("referer") + "confirm/" + confirm_token + " для подтверждения аккаунта.");
+            return new ResponseEntity<>(HttpStatus.OK);
+        } catch (NullPointerException | NoSuchElementException e) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
     }
 

@@ -36,7 +36,6 @@ public class AuthorizationControllerTest {
     private UserRepository userRepository;
     @Autowired
     private AuthorizationTokenRepository authorizationTokenRepository;
-
     private static String id;
     private static String username = "zaEzRcaUDvQkUQ";
     private static String email = "zaEzRcaUDvQkUQ@zaEzRcaUDvQkUQ.ru";

@@ -6,7 +6,6 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
 public class OnlinePcGamesStoreApplication {
-
     public static void main(String[] args) {
         try {
             SpringApplication.run(OnlinePcGamesStoreApplication.class, args);
@@ -16,5 +15,4 @@ public class OnlinePcGamesStoreApplication {
             }
         }
     }
-
 }

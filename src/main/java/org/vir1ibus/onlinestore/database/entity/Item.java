@@ -92,25 +92,25 @@ public class Item extends CustomJSONObject {
     private ItemType itemType;
 
     @NotNull
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false, cascade = CascadeType.REMOVE)
     @JoinColumn(name = "service_activation_id", nullable = false, referencedColumnName = "id")
     private ServiceActivation serviceActivation;
 
     @NotNull
-    @OneToMany(mappedBy = "item")
+    @OneToMany(mappedBy = "item", cascade = CascadeType.REMOVE)
     @Builder.Default
     private Set<Screenshot> screenshots = new LinkedHashSet<>();
 
     @NotNull
-    @OneToMany(mappedBy = "item")
+    @OneToMany(mappedBy = "item", cascade = CascadeType.REMOVE)
     @Builder.Default
     private Set<Trailer> trailers = new LinkedHashSet<>();
     @NotNull
-    @OneToMany(mappedBy = "item")
+    @OneToMany(mappedBy = "item", cascade = CascadeType.REMOVE)
     @Builder.Default
     private Set<Review> reviews = new LinkedHashSet<>();
     @NotNull
-    @OneToMany(mappedBy = "item")
+    @OneToMany(mappedBy = "item", cascade = CascadeType.REMOVE)
     @Builder.Default
     private Set<ItemHasSystemRequirement> itemHasSystemRequirement = new LinkedHashSet<>();
 
@@ -123,14 +123,15 @@ public class Item extends CustomJSONObject {
     private Set<Genre> genres = new LinkedHashSet<>();
 
     @OnDelete(action = OnDeleteAction.CASCADE)
-    @ManyToMany
+    @ManyToMany(cascade = CascadeType.REMOVE)
     @JoinTable(name = "purchases_has_items",
             joinColumns = @JoinColumn(name = "item_id"),
             inverseJoinColumns = @JoinColumn(name = "purchases_id"))
     @Builder.Default
     private Set<Purchase> purchases = new LinkedHashSet<>();
 
-    @OneToMany(mappedBy = "item")
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    @OneToMany(mappedBy = "item", cascade = CascadeType.REMOVE)
     @Builder.Default
     private Set<ActivateKey> activateKeys = new LinkedHashSet<>();
 
@@ -159,6 +160,7 @@ public class Item extends CustomJSONObject {
                 .put("genres", JSONConverter.toJsonArray(this.genres))
                 .put("count", this.activateKeys.stream().filter(key -> key.getPurchase() == null).count());
     }
+
     @Override
     public JSONObject toMinimalJSONObject() {
         return new JSONObject()
@@ -170,5 +172,13 @@ public class Item extends CustomJSONObject {
                 .put("service_activation", this.serviceActivation.toJSONObject())
                 .put("region_activation", this.regionActivation.toJSONObject())
                 .put("count", this.activateKeys.stream().filter(key -> key.getPurchase() == null).count());
+    }
+
+    @Override
+    public JSONObject toSelectMinimalJSONObject() {
+        return new JSONObject()
+                .put("id", this.id)
+                .put("title", this.title)
+                .put("screenshots", JSONConverter.toJsonArray(this.screenshots));
     }
 }

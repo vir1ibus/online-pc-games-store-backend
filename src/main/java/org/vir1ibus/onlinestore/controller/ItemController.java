@@ -23,7 +23,6 @@ import javax.validation.constraints.NotBlank;
 import java.net.URI;
 import java.time.LocalDate;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/")
@@ -48,6 +47,7 @@ public class ItemController {
     private final ScreenshotRepository screenshotRepository;
     private final ItemHasSystemRequirementRepository itemHasSystemRequirementRepository;
     private final ActivateKeyRepository activateKeyRepository;
+    private final CarouselRepository carouselRepository;
 
     public ItemController(UserRepository userRepository, ItemRepository itemRepository, GenreRepository genreRepository,
                           AuthorizationTokenRepository authorizationTokenRepository, BasketRepository basketRepository,
@@ -58,7 +58,7 @@ public class ItemController {
                           ServiceActivationRepository serviceActivationRepository,
                           SystemRequirementRepository systemRequirementRepository,
                           DescriptionRepository descriptionRepository, ScreenshotRepository screenshotRepository,
-                          ItemHasSystemRequirementRepository itemHasSystemRequirementRepository) {
+                          ItemHasSystemRequirementRepository itemHasSystemRequirementRepository, CarouselRepository carouselRepository) {
         this.userRepository = userRepository;
         this.itemRepository = itemRepository;
         this.genreRepository = genreRepository;
@@ -77,6 +77,7 @@ public class ItemController {
         this.screenshotRepository = screenshotRepository;
         this.itemHasSystemRequirementRepository = itemHasSystemRequirementRepository;
         this.activateKeyRepository = activateKeyRepository;
+        this.carouselRepository = carouselRepository;
     }
 
     private User isAuthenticated(String token) throws NullPointerException, NoSuchElementException {
@@ -143,13 +144,17 @@ public class ItemController {
      */
 
     @RequestMapping(value = "/genres", method = RequestMethod.GET)
-    public ResponseEntity<String> findGenres() {
+    public ResponseEntity<String> findGenres(@RequestParam(required = false) String page) {
         try {
-            List<Genre> genres = genreRepository.findAll();
+            Page<Genre> genres = genreRepository.findAll(CustomPage.getPage(page, ITEMS_ON_PAGE));
             return new ResponseEntity<>(
-                    JSONConverter.toJsonArray(genres).put(itemRepository.count()).toString(),
-                    HttpStatus.OK
-            );
+                    new JSONObject()
+                            .put("values", JSONConverter.toJsonArray(genres))
+                            .put("total_elements", genres.getTotalElements())
+                            .put("total_pages", genres.getTotalPages())
+                            .put("total_items", itemRepository.count())
+                            .toString(),
+                    HttpStatus.OK);
         } catch (NullPointerException | NoSuchElementException e) {
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         }
@@ -245,8 +250,13 @@ public class ItemController {
     @RequestMapping(value = "/developers", method = RequestMethod.GET)
     public ResponseEntity<String> findDevelopers(@RequestParam(required = false) String page) {
         try {
+            Page<Developer> developers = developerRepository.findAll(CustomPage.getPage(page, ITEMS_ON_PAGE));
             return new ResponseEntity<>(
-                    JSONConverter.toMinimalJsonArray(developerRepository.findAll(CustomPage.getPage(page, ITEMS_ON_PAGE))).put(developerRepository.count()).toString(),
+                    new JSONObject()
+                            .put("values", JSONConverter.toMinimalJsonArray(developers))
+                            .put("total_elements", developers.getTotalElements())
+                            .put("total_pages", developers.getTotalPages())
+                            .toString(),
                     HttpStatus.OK);
         } catch (NullPointerException e) {
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
@@ -260,8 +270,13 @@ public class ItemController {
     @RequestMapping(value = "/publishers", method = RequestMethod.GET)
     public ResponseEntity<String> findPublishers(@RequestParam(required = false) String page) {
         try {
+            Page<Publisher> publishers = publisherRepository.findAll(CustomPage.getPage(page, ITEMS_ON_PAGE));
             return new ResponseEntity<>(
-                    JSONConverter.toMinimalJsonArray(publisherRepository.findAll(CustomPage.getPage(page, ITEMS_ON_PAGE))).put(publisherRepository.count()).toString(),
+                    new JSONObject()
+                            .put("values", JSONConverter.toMinimalJsonArray(publishers))
+                            .put("total_elements", publishers.getTotalElements())
+                            .put("total_pages", publishers.getTotalPages())
+                            .toString(),
                     HttpStatus.OK);
         } catch (NullPointerException e) {
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
@@ -566,8 +581,7 @@ public class ItemController {
                                              @RequestParam Integer[] genre,
                                              @RequestParam String[] activateKeys,
                                              @RequestParam MultipartFile img,
-                                             @RequestParam List<MultipartFile> screenshots,
-                                             HttpServletRequest httpServletRequest) {
+                                             @RequestParam List<MultipartFile> screenshots) {
         try {
             if(isModerator(token) || isAdmin(token)) {
                 if(!itemRepository.findById(StringFormatter.toId(title)).isPresent()) {
@@ -622,6 +636,104 @@ public class ItemController {
                 } else {
                     throw new NoSuchElementException();
                 }
+            } else {
+                return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+            }
+        } catch (NullPointerException | NoSuchElementException e) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @RequestMapping(value = "/get/carousel", method = RequestMethod.GET)
+    public ResponseEntity<?> getCarousel() {
+        try {
+            return new ResponseEntity<>(
+                    JSONConverter.toJsonArray(carouselRepository.findAll()).toString(),
+                    HttpStatus.OK);
+        } catch (NullPointerException | NoSuchElementException e) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+    }
+
+
+    @RequestMapping(value = "/add/carousel", method = RequestMethod.POST)
+    public ResponseEntity<?> addCarousel(@RequestHeader(value = "Authorization") String token,
+                                         @RequestParam String itemId,
+                                         @RequestParam Integer screenshotId) {
+        try {
+            if(isAdmin(token) || isModerator(token)) {
+                return new ResponseEntity<>(
+                        carouselRepository.save(Carousel.builder()
+                                .item(itemRepository.getById(itemId))
+                                .screenshot(screenshotRepository.getById(screenshotId))
+                                .build()).toJSONObject().toString(),
+                        HttpStatus.CREATED);
+            } else {
+                return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+            }
+        } catch (NullPointerException | NoSuchElementException e) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @RequestMapping(value = "/set/carousel", method = RequestMethod.POST)
+    public ResponseEntity<?> setCarousel(@RequestHeader(value = "Authorization") String token,
+                                         @RequestParam Integer id,
+                                         @RequestParam String itemId,
+                                         @RequestParam Integer screenshotId) {
+        try {
+            if(isAdmin(token) || isModerator(token)) {
+                Carousel carousel = carouselRepository.getById(id);
+                carousel.setItem(itemRepository.getById(itemId));
+                carousel.setScreenshot(screenshotRepository.getById(screenshotId));
+                return new ResponseEntity<>(
+                        carouselRepository.save(carousel).toJSONObject().toString(),
+                        HttpStatus.CREATED);
+            } else {
+                return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+            }
+        } catch (NullPointerException | NoSuchElementException e) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @RequestMapping(value = "/delete/carousel/{carouselId}", method = RequestMethod.DELETE)
+    public ResponseEntity<?> deleteCarousel(@RequestHeader(value = "Authorization") String token,
+                                         @PathVariable Integer carouselId) {
+        try {
+            if(isAdmin(token) || isModerator(token)) {
+                carouselRepository.delete(carouselRepository.getById(carouselId));
+                return new ResponseEntity<>(HttpStatus.OK);
+            } else {
+                return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+            }
+        } catch (NullPointerException | NoSuchElementException e) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @RequestMapping(value = "/get/item/minimal", method = RequestMethod.GET)
+    public ResponseEntity<?> getMinimalItems(@RequestHeader(value = "Authorization") String token) {
+        try {
+            if(isAdmin(token) || isModerator(token)) {
+                return new ResponseEntity<>(
+                        JSONConverter.toSelectMinimalJsonArray(itemRepository.findAll()).toString(),
+                        HttpStatus.OK);
+            } else {
+                return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+            }
+        } catch (NullPointerException | NoSuchElementException e) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @RequestMapping(value = "/delete/item/{itemId}", method = RequestMethod.DELETE)
+    public ResponseEntity<?> deleteItem(@RequestHeader(value = "Authorization") String token,
+                                        @PathVariable String itemId) {
+        try {
+            if(isAdmin(token) || isModerator(token)) {
+                itemRepository.delete(itemRepository.getById(itemId));
+                return new ResponseEntity<>(HttpStatus.OK);
             } else {
                 return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
             }

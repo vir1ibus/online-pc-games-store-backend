@@ -42,7 +42,7 @@ public class ConfirmationToken extends CustomJSONObject {
     @Column(name = "confirmed_at")
     private LocalDateTime confirmedAt;
 
-    @Column(name = "addressee")
+    @Column(name = "address")
     private String email;
 
     @Override
