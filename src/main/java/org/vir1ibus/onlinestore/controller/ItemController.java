@@ -48,6 +48,7 @@ public class ItemController {
     private final ItemHasSystemRequirementRepository itemHasSystemRequirementRepository;
     private final ActivateKeyRepository activateKeyRepository;
     private final CarouselRepository carouselRepository;
+    private final LikedRepository likedRepository;
 
     public ItemController(UserRepository userRepository, ItemRepository itemRepository, GenreRepository genreRepository,
                           AuthorizationTokenRepository authorizationTokenRepository, BasketRepository basketRepository,
@@ -58,7 +59,7 @@ public class ItemController {
                           ServiceActivationRepository serviceActivationRepository,
                           SystemRequirementRepository systemRequirementRepository,
                           DescriptionRepository descriptionRepository, ScreenshotRepository screenshotRepository,
-                          ItemHasSystemRequirementRepository itemHasSystemRequirementRepository, CarouselRepository carouselRepository) {
+                          ItemHasSystemRequirementRepository itemHasSystemRequirementRepository, CarouselRepository carouselRepository, LikedRepository likedRepository) {
         this.userRepository = userRepository;
         this.itemRepository = itemRepository;
         this.genreRepository = genreRepository;
@@ -78,6 +79,7 @@ public class ItemController {
         this.itemHasSystemRequirementRepository = itemHasSystemRequirementRepository;
         this.activateKeyRepository = activateKeyRepository;
         this.carouselRepository = carouselRepository;
+        this.likedRepository = likedRepository;
     }
 
     private User isAuthenticated(String token) throws NullPointerException, NoSuchElementException {
@@ -160,10 +162,40 @@ public class ItemController {
         }
     }
 
+    @CrossOrigin
+    @RequestMapping(value = "/liked/{itemId}", method = RequestMethod.PUT)
+    public ResponseEntity<?> addLiked(@RequestHeader(value = "Authorization") String token,
+                                       @PathVariable String itemId) {
+        try {
+            Liked liked = isAuthenticated(token).getLiked();
+            Set<Item> items = liked.getItems();
+            items.add(itemRepository.getById(itemId));
+            likedRepository.save(liked.setItems(items));
+            return new ResponseEntity<>(HttpStatus.OK);
+        } catch (NullPointerException | NoSuchElementException e) {
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        }
+    }
+
+    @CrossOrigin
+    @RequestMapping(value = "/liked/{itemId}", method = RequestMethod.DELETE)
+    public ResponseEntity<?> deleteLiked(@RequestHeader(value = "Authorization") String token,
+                                          @PathVariable String itemId) {
+        try {
+            Liked liked = isAuthenticated(token).getLiked();
+            Set<Item> items = liked.getItems();
+            items.remove(itemRepository.getById(itemId));
+            likedRepository.save(liked.setItems(items));
+            return new ResponseEntity<>(HttpStatus.OK);
+        } catch (NullPointerException | NoSuchElementException e) {
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        }
+    }
+
     /*
     Метод для добавления продукта в корзину пользователя.
      */
-
+    @CrossOrigin
     @RequestMapping(value = "/basket/{itemId}", method = RequestMethod.PUT)
     public ResponseEntity<?> addBasket(@RequestHeader(value = "Authorization") String token,
                                             @PathVariable String itemId) {
@@ -173,6 +205,17 @@ public class ItemController {
             items.add(itemRepository.getById(itemId));
             basketRepository.save(basket.setItems(items));
             return new ResponseEntity<>(HttpStatus.OK);
+        } catch (NullPointerException | NoSuchElementException e) {
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        }
+    }
+
+    @RequestMapping(value = "/liked", method = RequestMethod.GET)
+    public ResponseEntity<String> getLiked(@RequestHeader(value = "Authorization") String token) {
+        try {
+            return new ResponseEntity<>(
+                    isAuthenticated(token).getLiked().toMinimalJSONObject().toString(),
+                    HttpStatus.OK);
         } catch (NullPointerException | NoSuchElementException e) {
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         }

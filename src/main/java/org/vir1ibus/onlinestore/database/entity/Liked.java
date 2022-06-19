@@ -35,7 +35,7 @@ public class Liked extends CustomJSONObject {
     private User user;
 
     @OnDelete(action = OnDeleteAction.CASCADE)
-    @ManyToMany
+    @ManyToMany(cascade = CascadeType.REMOVE)
     @JoinTable(name = "liked_has_items",
             joinColumns = @JoinColumn(name = "liked_id"),
             inverseJoinColumns = @JoinColumn(name = "item_id"))
