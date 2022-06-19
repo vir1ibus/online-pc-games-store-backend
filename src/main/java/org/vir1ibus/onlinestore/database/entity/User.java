@@ -71,6 +71,7 @@ public class User extends CustomJSONObject {
                 .put("id", this.id)
                 .put("username", this.username)
                 .put("email", this.email)
+                .put("active", this.active)
                 .put("role", JSONConverter.toMinimalJsonArray(this.roles))
                 .put("basket", this.basket.toMinimalJSONObject())
                 .put("liked", this.liked.toMinimalJSONObject())
@@ -82,6 +83,7 @@ public class User extends CustomJSONObject {
     public JSONObject toMinimalJSONObject() {
         return new JSONObject()
                 .put("id", this.id)
-                .put("username", this.username);
+                .put("username", this.username)
+                .put("email", this.email);
     }
 }
